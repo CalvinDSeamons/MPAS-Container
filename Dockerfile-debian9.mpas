@@ -1,3 +1,5 @@
+```shell
+
 #Model for Prediction Across Scales (MPAS) "containerized" using docker.
 #Author: Calvin Seamons
 
@@ -175,3 +177,4 @@ RUN cp mpas-cores/init_atmosphere_model mountain_wave/
 RUN cp mpas-cores/atmosphere_model mountain_wave/
 RUN cp mpas-cores/init_atmosphere_model supercell/
 RUN cp mpas-cores/atmosphere_model /supercell
+```
