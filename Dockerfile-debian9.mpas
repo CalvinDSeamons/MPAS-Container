@@ -1,0 +1,177 @@
+#Model for Prediction Across Scales (MPAS) "containerized" using docker.
+#Author: Calvin Seamons
+
+#Dockerfile being built using openmpi build from charliecloud team.
+FROM openmpi
+
+#apt update and installation of tools, compilers, and libraries needed.
+RUN apt -y update
+RUN apt -y install build-essential
+RUN apt -y install wget curl git
+
+#Creating directory for tarballs.
+RUN mkdir -p /home/tars
+
+#Entering tar directory for downloading.
+WORKDIR /home/tars/
+
+
+#Downloading tarballs from website.
+RUN wget https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.gz              \
+    https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.16/src/hdf5-1.8.16.tar.gz \
+	https://parallel-netcdf.github.io/Release/pnetcdf-1.11.2.tar.gz                            \
+	https://github.com/jmrosinski/GPTL/releases/download/v5.6.0/gptl-5.6.0.tar.gz              \
+	https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.0.tar.gz                    \
+	https://github.com/NCAR/ParallelIO/releases/download/pio2_4_3/pio-2.4.3.tar.gz             \
+	https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-fortran-4.4.5.tar.gz              \
+	https://github.com/MPAS-Dev/MPAS-Model/archive/v7.0.tar.gz				                   \
+	http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz       		           \
+    http://www2.mmm.ucar.edu/projects/mpas/test_cases/v7.0/supercell.tar.gz                    \
+    https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
+
+#Untaring all tarballs into /usr/local/src.
+WORKDIR /usr/local/src/
+RUN  cat /home/tars/*.tar.gz | tar -xzf - -i
+
+#Installing requirements for Python3.7
+RUN apt -y install zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev
+RUN unxz /home/tars/Python-3.7.3.tar.xz
+Run tar -xf /home/tars/Python-3.7.3.tar
+WORKDIR /usr/local/src/Python-3.7.3
+#building python3.7 from source and installing into /usr/local
+RUN ./configure --enable-optimizations --prefix=/usr/local
+RUN make -j && make altinstall -j
+
+#Also need to grab python2.7 for some reason :(
+RUN apt -y install python
+
+#Installing Spack.
+WORKDIR /usr/local/src
+RUN git clone https://github.com/spack/spack.git
+WORKDIR /usr/local/src/spack
+RUN git checkout v0.12.1
+#RUN "." source share/spack/setup-env.sh
+
+RUN ./bin/spack install zlib@1.2.11
+RUN ./bin/spack install gcc@8.2.0
+
+#TODO edit spack to allow dir specification and not use hash.
+ENV PATH=/usr/local/src/spack/opt/spack/linux-centos7-x86_64/gcc-4.8.5/gcc-8.2.0-sxbf4jq6ghmoybsjlpqz2dm2qbbxzfyn/bin/:$PATH
+
+#Installation of Parallel hdf5 (phdf5)
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+WORKDIR /usr/local/src/hdf5-1.8.16
+RUN CC=mpicc FC=mpif90 ./configure --with-zlib=/usr/local/zlib \
+                                   --disable-cxx               \
+                                   --enable-parallel           \
+                                   --enable-hl                 \
+                                   --enable-fortran            \
+                                   --enable-fortran2003        \
+                                   --enable-direct-vfd         \
+                                   --enable-production         \
+                                   --enable-build-all          \
+                                   --enable-shared             \
+                                   --prefix=/usr/local
+RUN make -j && make install -j
+
+
+#Installation of PNetCDF
+WORKDIR /usr/local/src/pnetcdf-1.11.2
+RUN ./configure --enable-shared        \
+                --prefix=/usr/local/   \
+                --with-mpi=/usr/local/
+
+RUN make check -j && make install -j
+
+
+
+#Installation of NetCDF
+Run apt -y install libcurl4-gnutls-dev
+WORKDIR /usr/local/src/netcdf-c-4.7.0
+RUN LDFLAGS='-L/usr/local/lib -lpnetcdf' \
+    CPPFLAGS='-I/usr/local/include' ./configure --disable-dap             \
+                                                --disable-hdf4            \
+                                                --enable-parallel-tests   \
+                                                --enable-pnetcdf          \
+                                                --enable-large-file-tests \
+                                                --prefix=/usr/local/
+RUN make -j && make install -j
+
+
+
+#Installation of NetCDF-Fortran TODO may not be needed...
+WORKDIR /usr/local/src/netcdf-fortran-4.4.5
+RUN ./configure --enable-shared --prefix=/usr/local
+RUN make -j && make install -j
+
+
+#PIO building
+WORKDIR /usr/local/src/pio-2.4.3
+RUN CC=/usr/local/bin/mpicc   \
+    FC=/usr/local/bin/mpif90  \
+    CFLAGS=-std=c99 ./configure --enable-fortran --enable-shared
+
+RUN make -j && make install -j
+
+
+#MPAS Atmosphere Core Generated, all built core stored into mpas-cores
+RUN mkdir /usr/local/src/mpas-cores
+
+#Generation of init_atmosphere core
+WORKDIR /usr/local/src/MPAS-Model-7.0
+RUN PIO=/usr/local     \
+    NETCDF=/usr/local  \
+    PNETCDF=/usr/local \
+    make gfortran CORE=init_atmosphere \
+                  USE_PIO2=true        \
+                  DEBUG=true           \
+                  PRECISION=single
+
+#store and remove init_atmosphere core generation
+RUN cp init_atmosphere_model ../mpas-cores
+RUN make clean CORE=init_atmosphere
+
+#Generation of atmosphere core.
+RUN PIO=/usr/local     \
+    NETCDF=/usr/local  \
+    PNETCDF=/usr/local \
+    make gfortran CORE=atmosphere \
+                  USE_PIO2=true   \
+                  DEBUG=true      \
+                  PRECISION=single
+
+#Store and remove atmosphere core generation
+RUN cp atmosphere_model ../mpas-cores
+RUN make clean CORE=atmosphere
+
+RUN PIO=/usr/local         \
+    NETCDF=/usr/local      \
+    PNETCDF=/usr/local     \
+    make gfortran CORE=ocean       \
+                  USE_PIO2=true
+                  #PRECISION=single \
+                  #DEBUG=true
+
+#Store and remove ocean core generation
+RUN cp ocean_model ../mpas-cores
+Run make clean CORE=ocean
+
+
+#Quck setup to add mountain_waves test as well.
+WORKDIR /home/tars
+RUN wget http://www2.mmm.ucar.edu/projects/mpas/test_cases/v7.0/mountain_wave.tar.gz \
+         https://github.com/NCAR/ncl/archive/6.6.2.tar.gz \
+         http://www2.mmm.ucar.edu/projects/mpas/test_cases/v7.0/jw_baroclinic_wave.tar.gz
+
+
+#Untar mountain wave as another test-case
+WORKDIR /usr/local/src
+RUN tar -xzf /home/tars/mountain_wave.tar.gz
+RUN tar -xzf /home/tars/6.6.2.tar.gz
+RUN tar -xzf /home/tars/jw_baroclinic_wave.tar.gz
+
+#add execute cores into test files.
+RUN cp mpas-cores/init_atmosphere_model mountain_wave/
+RUN cp mpas-cores/atmosphere_model mountain_wave/
+RUN cp mpas-cores/init_atmosphere_model supercell/
+RUN cp mpas-cores/atmosphere_model /supercell
