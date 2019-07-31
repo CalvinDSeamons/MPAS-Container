@@ -2,7 +2,9 @@
 #Author: Calvin Seamons
 
 #Dockerfile being built using openmpi build from charliecloud team.
-FROM openmpi
+#For multi-node runs modification is needed for Dockerfile.openmpi
+#Disable ucx in Dockerfile.openmpi buy removing `with-ucx` and ucx ./configure
+FROM openmpi-no-ucx
 
 #apt update and installation of tools, compilers, and libraries needed.
 RUN apt -y update
@@ -15,17 +17,16 @@ RUN mkdir -p /home/tars
 #Entering tar directory for downloading.
 WORKDIR /home/tars/
 
-
 #Downloading tarballs from website.
 RUN wget https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.gz              \
     https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.16/src/hdf5-1.8.16.tar.gz \
-	https://parallel-netcdf.github.io/Release/pnetcdf-1.11.2.tar.gz                            \
-	https://github.com/jmrosinski/GPTL/releases/download/v5.6.0/gptl-5.6.0.tar.gz              \
-	https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.0.tar.gz                    \
-	https://github.com/NCAR/ParallelIO/releases/download/pio2_4_3/pio-2.4.3.tar.gz             \
-	https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-fortran-4.4.5.tar.gz              \
-	https://github.com/MPAS-Dev/MPAS-Model/archive/v7.0.tar.gz				                   \
-	http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz       		           \
+    https://parallel-netcdf.github.io/Release/pnetcdf-1.11.2.tar.gz                            \
+    https://github.com/jmrosinski/GPTL/releases/download/v5.6.0/gptl-5.6.0.tar.gz              \
+    https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.0.tar.gz                    \
+    https://github.com/NCAR/ParallelIO/releases/download/pio2_4_3/pio-2.4.3.tar.gz             \
+    https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-fortran-4.4.5.tar.gz              \
+    https://github.com/MPAS-Dev/MPAS-Model/archive/v7.0.tar.gz                                 \
+    http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz                         \
     http://www2.mmm.ucar.edu/projects/mpas/test_cases/v7.0/supercell.tar.gz                    \
     https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
 
@@ -33,16 +34,8 @@ RUN wget https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.g
 WORKDIR /usr/local/src/
 RUN  cat /home/tars/*.tar.gz | tar -xzf - -i
 
-#Installing requirements for Python3.7
+#Python Library and 2.7 install
 RUN apt -y install zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev
-RUN unxz /home/tars/Python-3.7.3.tar.xz
-Run tar -xf /home/tars/Python-3.7.3.tar
-WORKDIR /usr/local/src/Python-3.7.3
-#building python3.7 from source and installing into /usr/local
-RUN ./configure --enable-optimizations --prefix=/usr/local
-RUN make -j && make altinstall -j
-
-#Also need to grab python2.7 for some reason :(
 RUN apt -y install python
 
 #Installing Spack.
@@ -52,6 +45,7 @@ WORKDIR /usr/local/src/spack
 RUN git checkout v0.12.1
 #RUN "." source share/spack/setup-env.sh
 
+#Installing zlib and gcc8.2 using spack
 RUN ./bin/spack install zlib@1.2.11
 RUN ./bin/spack install gcc@8.2.0
 
@@ -83,8 +77,6 @@ RUN ./configure --enable-shared        \
 
 RUN make check -j && make install -j
 
-
-
 #Installation of NetCDF
 Run apt -y install libcurl4-gnutls-dev
 WORKDIR /usr/local/src/netcdf-c-4.7.0
@@ -99,7 +91,7 @@ RUN make -j && make install -j
 
 
 
-#Installation of NetCDF-Fortran TODO may not be needed...
+#Installation of NetCDF-Fortran
 WORKDIR /usr/local/src/netcdf-fortran-4.4.5
 RUN ./configure --enable-shared --prefix=/usr/local
 RUN make -j && make install -j
@@ -174,4 +166,10 @@ RUN tar -xzf /home/tars/jw_baroclinic_wave.tar.gz
 RUN cp mpas-cores/init_atmosphere_model mountain_wave/
 RUN cp mpas-cores/atmosphere_model mountain_wave/
 RUN cp mpas-cores/init_atmosphere_model supercell/
-RUN cp mpas-cores/atmosphere_model /supercell
+RUN cp mpas-cores/atmosphere_model supercell/
+
+WORKDIR /usr/local/src/supercell
+RUN ./init_atmosphere_model
+WORKDIR /usr/local/src/mountain_wave
+RUN ./init_atmosphere_model
+
