@@ -48,4 +48,6 @@ to run large scale simulations on HPC resources with their own preferred softwar
 2) Reflect changes as seen in Dockerfile.openmpi in this repo or copy this one into `charliecloud/tests`
 3) Rebuild the openmpi image with `ch-grow -t openmpi-no-ucx -f Dockerfile.openmpi` the openmpi-no-ucx corresponds to the `FROM openmpi-no-ucx` in the MPAS dockerfile.
         Note. Probably a good idea to make a charliecloud branch and add this fix. 
+        
+4) Add the following line in `streams.$simulation-name` inside the output tags. clobber_mode="apend". This will let multi nodes write to the same output file without issue. 
 
