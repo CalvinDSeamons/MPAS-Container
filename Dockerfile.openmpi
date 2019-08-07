@@ -1,4 +1,5 @@
 # ch-test-scope: full
+#LA-UR-19-27938
 FROM debian9
 
 # A key goal of this Dockerfile is to demonstrate best practices for building
