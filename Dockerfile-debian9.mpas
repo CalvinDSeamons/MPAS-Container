@@ -1,6 +1,5 @@
-#Model for Prediction Across Scales (MPAS) "containerized" using docker.
+#Model for Prediction Across Scales (MPAS) "containerized" using Charliecloud.
 #Author: Calvin Seamons
-#LA-UR-19-27938
 
 #Dockerfile being built using openmpi build from charliecloud team.
 #For multi-node runs modification is needed for Dockerfile.openmpi
@@ -8,7 +7,7 @@
 FROM openmpi-no-ucx
 
 #apt update and installation of tools, compilers, and libraries needed.
-RUN apt -y update
+RUN apt-get -y update
 RUN apt -y install build-essential
 RUN apt -y install wget curl git
 
@@ -169,8 +168,8 @@ RUN cp mpas-cores/atmosphere_model mountain_wave/
 RUN cp mpas-cores/init_atmosphere_model supercell/
 RUN cp mpas-cores/atmosphere_model supercell/
 
-WORKDIR /usr/local/src/supercell
-RUN ./init_atmosphere_model
-WORKDIR /usr/local/src/mountain_wave
-RUN ./init_atmosphere_model
-
+#WORKDIR /usr/local/src/supercell
+#RUN ./init_atmosphere_model
+#WORKDIR /usr/local/src/mountain_wave
+#RUN ./init_atmosphere_model
+#RUN apt -y install vim libgfortran3

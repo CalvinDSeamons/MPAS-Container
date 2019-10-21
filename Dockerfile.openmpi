@@ -1,5 +1,4 @@
 # ch-test-scope: full
-#LA-UR-19-27938
 FROM debian9
 
 # A key goal of this Dockerfile is to demonstrate best practices for building
@@ -140,8 +139,8 @@ ENV MPI_URL https://www.open-mpi.org/software/ompi/v3.1/downloads
 ENV MPI_VERSION 3.1.4
 RUN wget -nv ${MPI_URL}/openmpi-${MPI_VERSION}.tar.gz
 RUN tar xf openmpi-${MPI_VERSION}.tar.gz
-COPY dont-init-ucx-on-intel-cray.patch ./openmpi-${MPI_VERSION}
-RUN cd openmpi-${MPI_VERSION} && git apply dont-init-ucx-on-intel-cray.patch
+#COPY dont-init-ucx-on-intel-cray.patch ./openmpi-${MPI_VERSION}
+RUN cd openmpi-${MPI_VERSION} #&& git apply dont-init-ucx-on-intel-cray.patch
 RUN    cd openmpi-${MPI_VERSION} \
     && CFLAGS=-O3 \
        CXXFLAGS=-O3 \
@@ -153,9 +152,9 @@ RUN    cd openmpi-${MPI_VERSION} \
                    --disable-pty-support \
                    --enable-mca-no-build=btl-openib,plm-slurm \
     && make -j$(getconf _NPROCESSORS_ONLN) install
-RUN ldconfig
-RUN rm -Rf openmpi-${MPI_VERSION}*
+#RUN ldconfig
+#RUN rm -Rf openmpi-${MPI_VERSION}*
 
 # OpenMPI expects this program to exist, even if it's not used. Default is
 # "ssh : rsh", but that's not installed.
-RUN echo 'plm_rsh_agent = false' >> /mnt/0/openmpi-mca-params.conf
+#RUN echo 'plm_rsh_agent = false' >> /mnt/0/openmpi-mca-params.conf
