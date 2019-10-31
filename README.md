@@ -34,7 +34,7 @@ to run large scale simulations on HPC resources with their own preferred softwar
      Save the core `init_atmosphere_model` in another directory then run `make clean CORE=init_atmosphere` and run  
     `RUN PIO=/usr/local NETCDF=/usr/local PNETCDF=/usr/local make gfortran CORE=atmosphere USE_PIO2=true DEBUG=true PRECISION=single`  
     This will generate your ```atmosphere_model``` which you will also want to save
-    
+
 4) Copy both cores into the simulation test you ran or sym link them with example `ln -s /usr/local/src/MPAS-Model-7.0/init_atmosphere_model /usr/local/src/supercell`
 
 
@@ -47,7 +47,8 @@ to run large scale simulations on HPC resources with their own preferred softwar
 1) If using charlecloud go into `charliecloud/tests/` and edit the file `Dockerfile.openmpi`  
 2) Reflect changes as seen in Dockerfile.openmpi in this repo or copy this one into `charliecloud/tests`
 3) Rebuild the openmpi image with `ch-grow -t openmpi-no-ucx -f Dockerfile.openmpi` the openmpi-no-ucx corresponds to the `FROM openmpi-no-ucx` in the MPAS dockerfile.
-        Note. Probably a good idea to make a charliecloud branch and add this fix. 
-        
+        Note. Probably a good idea to make a charliecloud branch and add this fix.
 4) Add the following line in `streams.$simulation-name` inside the output tags. clobber_mode="apend". This will let multi nodes write to the same output file without issue. 
+
+All MPAS test simulations [Supercell, Mountainwave] are capped at 32 ranks and cannot be exceeded.
 
