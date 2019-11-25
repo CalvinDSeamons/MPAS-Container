@@ -26,7 +26,9 @@ follow the instructions below to build MPAS and see it work in action!
     
 8) If you dont want to do all this the `build-mpas-container.sh` will do it for you. Run `./build-mpas-container` from within the MPAS-Container directory. 
 
-9) If you have any issues please reach out and I will do my best to help troubleshoot. 
+9) To generate visual data build the `Dockerfile.ncl`.
+
+If you have any issues please reach out and I will do my best to help troubleshoot. 
 
 
 
