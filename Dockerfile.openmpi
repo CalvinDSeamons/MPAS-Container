@@ -1,5 +1,5 @@
 # ch-test-scope: full
-FROM debian9
+FROM debian:9
 
 # A key goal of this Dockerfile is to demonstrate best practices for building
 # OpenMPI for use inside a container.
@@ -56,7 +56,7 @@ FROM debian9
 #      this are inscrutable).
 #
 # [1]: https://github.com/open-mpi/ompi/blob/master/README
-
+RUN apt-get update -y
 # OS packages needed to build this stuff.
 RUN apt-get install -y --no-install-suggests \
     autoconf \
