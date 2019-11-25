@@ -24,7 +24,9 @@ follow the instructions below to build MPAS and see it work in action!
     
 7) Look at `Running Simulation Tests with MPAS` below to run actual MPAS simulations. 
     
-8) If you dont want to do all this the `build-mpas-container.sh` will do it for you. Run `./build-mpas-container`.
+8) If you dont want to do all this the `build-mpas-container.sh` will do it for you. Run `./build-mpas-container` from within the MPAS-Container directory. 
+
+9) If you have any issues please reach out and I will do my best to help troubleshoot. 
 
 
 
