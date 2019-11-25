@@ -1,5 +1,34 @@
 # Making Atmospheric Modeling Software (MPAS) Containerized  
 LA-UR-19-27938
+
+### Instructions 
+Thanks to all who visited my poster from Supercomputing Convention 2019 (sc2019). To showcase the power of containers you can
+follow the instructions below to build MPAS and see it work in action!
+***
+1) Download charliecloud at <https://github.com/hpc/charliecloud>. This lightweight container builder and runtime is a fantastic choice if you're starting to look into containers. Any runtime that reads Dockerfiles should be fine, but note the rest of these instruction wont relate anymore. 
+
+2) ```cd``` into the `MPAS-Container` directory you cloned (clone this repository). 
+
+3) Build the openmpi image `openmpi-no-ucx` with the following command:  
+    ```~/$path_to_charliecloud/charliecloud/bin/ch-build -t openmpi-no-ucx -f Dockerfile.openmpi .```
+    
+4) Now build the mpas container with the following command:  
+    ```~/$path_to_charliecloud/charliecloud/bin/ch-build -t mpas_container -f Dockerfile-debian9.mpas .```
+    
+5) You can compress the image into a tar with:  
+    ```~/path_to_charliecloud/charliecloud/bin/builder2tar mpas_container /tmp```  
+    You can now `scp` this tar onto a machine with the same architecture and run the container there,  or where you built it.
+    
+6) To unpack the tar run the following: ```~/charliecloud/bin/ch-tar2dir /tmp/mpas_container.tar.gz .```  
+    This will flatten the tar into a file system image in your current context directory. 
+    
+7) Look at `Running Simulation Tests with MPAS` below to run actual MPAS simulations. 
+    
+8) If you dont want to do all this the `build-mpas-container.sh` will do it for you. Run `./build-mpas-container`.
+
+
+
+
 ### Abstract
 ***
 High performance computing (HPC) scientific applications require complex dependencies, many of which are not supplied by the Linux operating system.
