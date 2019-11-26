@@ -1,0 +1,27 @@
+#Centos8 image for MPAS-Atmosphere
+FROM centos:8
+RUN yum update -y
+RUN yum install -y wget curl git gcc
+
+ENV PATH=$PATH:/usr/local/bin/
+
+RUN echo $PATH | tr ":" "\n"
+RUN  gcc --version
+
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+RUN mkdir -p /usr/local/src/tars/
+WORKDIR /usr/local/src/tars/
+RUN wget https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.gz
+
+WORKDIR /usr/local/src/
+RUN tar xzf tars/openmpi-3.1.2.tar.gz
+WORKDIR /usr/local/src/openmpi-3.1.2/
+RUN CFLAGS=-03 CXXFLAGS=-03 \
+    ./configure --prefix=/usr/local \
+                --sysconfdir=/mnt/0 \
+                --with-slurm        \
+                --with-pmi          \
+                --with-pmix         \
+                --disable-pty-support \
+                --enable-mca-no-build=btl-openib,plm-slurm
+RUN make -j$(getconf _NPROCESSORS_ONLN) install
