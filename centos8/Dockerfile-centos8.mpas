@@ -24,7 +24,7 @@ RUN cat /usr/local/src/tars/*.tar.gz | tar -xzf - -i
 
 WORKDIR /usr/local/src/zlib-1.2.11
 RUN ./configure --prefix=/usr/local
-RUN make -j
+RUN make -j && make install
 
 ENV PATH=/usr/local/bin/:$PATH
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
@@ -49,7 +49,7 @@ RUN ./configure --prefix=/usr/local/ \
 RUN make check -j && make install -j
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-RUN yum -y install libcurl-devel
+RUN yum -y install libcurl-devel zlib
 WORKDIR /usr/local/src/netcdf-c-4.7.0
 RUN LDFLAGS='-L/use/local/lib -lpnetcdf' \
     CPPFLAGS='-I/usr/local/include' \
@@ -68,13 +68,43 @@ RUN ./configure --prefix=/usr/local/  \
 
 RUN make -j && make install -j
 
+RUN yum install -y cmake
 WORKDIR /usr/local/src/ParallelIO-pio2_5_0
-RUN CC=/usr/local/bin/mpicc \
-    FC=/usr/local/bin/mpif90 \
-    CFLAGS=-std=c99 ./configure --prefix=/usr/local/ \
-                                --enable-fortran \
-                                --enable-shared
+RUN CC=mpicc \
+    FC=mpif90 \
+    CFLAGS=-std=c99 cmake /usr/local/src/ParallelIO-pio2_5_0
 
 RUN make -j && make install -j
+
+RUN mkdir -p /usr/local/src/cores
+WORKDIR /usr/local/src
+
+RUN git clone https://github.com/MPAS-Dev/MPAS-Data.git
+WORKDIR /usr/local/src/MPAS-Data/
+RUN git checkout v7.0
+RUN cp -r atmosphere/physics_wrf/files ../MPAS-Model-7.0/src/core_atmosphere/physics/physics_wrf/
+
+WORKDIR /usr/local/src/MPAS-Model-7.0
+RUN PIO=/usr/local \
+    NETCDF=/usr/local \
+    PNETCDF=/usr/local \
+    make gfortran CORE=init_atmosphere \
+                  USE_PIO2=true \
+                  DEBUG=true \
+                  PRECISION=single
+RUN cp init_atmosphere_model ../cores && make clean CORE=init_atmosphere
+
+RUN PIO=/usr/local \
+    NETCDF=/usr/local \
+    PNETCDF=/usr/local \
+    make gfortran CORE=atmosphere \
+         USE_PIO2=true \
+         DEBUG=true \
+         PRECISION=single
+RUN cp atmosphere_model ../cores && make clean CORE=atmosphere
+
+
+
+
 
 #RUN make -j$(getconf _NPROCESSORS_ONLN) install
