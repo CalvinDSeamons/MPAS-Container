@@ -30,10 +30,6 @@ follow the instructions below to build MPAS and see it work in action!
 
 10) Alternatively just run ```./build-image.sh -os centos8``` or ```./build-image.sh -os debian9```
 
-If you have any issues please reach out and I will do my best to help troubleshoot. 
-
-
-
 
 ### Abstract
 ***
