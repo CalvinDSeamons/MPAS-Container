@@ -5,7 +5,7 @@
 
 
 #Loading in the pre-build image mpas-debian9 from Dockerfile-debian9.mpas
-FROM mpas-debian9
+FROM debian9-mpas
 
 #Building dir for ncl and wget tarball, unzip, and delete tar
 RUN mkdir /usr/local/ncl-6.6.2

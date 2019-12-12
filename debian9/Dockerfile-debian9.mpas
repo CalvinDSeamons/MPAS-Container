@@ -4,7 +4,7 @@
 #Dockerfile being built using openmpi build from charliecloud team.
 #For multi-node runs modification is needed for Dockerfile.openmpi
 #Disable ucx in Dockerfile.openmpi buy removing `with-ucx` and ucx ./configure
-FROM openmpi-no-ucx
+FROM debian9-openmpi
 
 #apt update and installation of tools, compilers, and libraries needed.
 RUN apt-get -y update
