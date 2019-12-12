@@ -1,5 +1,5 @@
 #Centos8 image for MPAS-Atmosphere
-FROM centos8.openmpi:latest
+FROM centos8-openmpi
 RUN yum update -y
 RUN yum install -y wget curl git make
 
