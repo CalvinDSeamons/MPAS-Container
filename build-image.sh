@@ -58,6 +58,18 @@ build-only-tar(){
     fi
 }
 
+run-container() {
+    if [[ -d "container/$1-mpas" ]]; then
+        ch-run -w \-\-set-env=container/$1-mpas/ch/environment \
+            container/$1-mpas -- /bin/bash
+
+    else
+        fatal "Build image first with -os"
+
+    fi
+
+}
+
 which ch-build
 #if charliecloud is not installed error out
 if [[ $? == 1 ]]; then
@@ -79,6 +91,10 @@ while [[ $# > 0 ]]; do
         ;;
     -tar|-tarball)
         build-only-tar "$1"
+        exit 0
+        ;;
+    -run)
+        run-container "$1"
         exit 0
         ;;
     *)
