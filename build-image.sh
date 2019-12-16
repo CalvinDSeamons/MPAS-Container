@@ -12,9 +12,7 @@ echo "MPAS Build Script
 
           * -tar | -tarball -- select if you just want a tarball.
               Ex: ./build-image -tar debian9
-
-      
-           
+              
           * -run will execute the following command and place a user inside a running container:
               ch-run -w --unset-env=\"*\" --cd=/usr/local/src/ \\
               --set-env=/container/\$OS/ch/environment container/\$OS \\
