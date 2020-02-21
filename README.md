@@ -2,8 +2,6 @@
 LA-UR-19-27938
 
 ### Instructions 
-Thanks to all who visited my poster from Supercomputing Convention 2019 (sc2019). To showcase the power of containers you can
-follow the instructions below to build MPAS and see it work in action!
 ***
 1) Download charliecloud at <https://github.com/hpc/charliecloud>. This lightweight container builder and runtime is a fantastic choice if you're starting to look into containers. Any runtime that reads Dockerfiles should be fine, but note the rest of these instruction wont relate anymore. 
 
