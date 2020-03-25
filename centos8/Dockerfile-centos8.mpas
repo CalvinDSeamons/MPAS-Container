@@ -51,7 +51,7 @@ RUN make check -j && make install -j
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 RUN yum -y install libcurl-devel zlib
 WORKDIR /usr/local/src/netcdf-c-4.7.0
-RUN LDFLAGS='-L/use/local/lib -lpnetcdf' \
+RUN LDFLAGS='-L/usr/local/lib -lpnetcdf' \
     CPPFLAGS='-I/usr/local/include' \
     ./configure --prefix=/usr/local/ \
                 --disable-dap \
