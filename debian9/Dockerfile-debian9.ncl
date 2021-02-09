@@ -6,13 +6,17 @@
 
 #Loading in the pre-build image mpas-debian9 from Dockerfile-debian9.mpas
 FROM debian9-mpas
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
 
-#Building dir for ncl and wget tarball, unzip, and delete tar
-RUN mkdir /usr/local/ncl-6.6.2
-WORKDIR /usr/local/ncl-6.6.2
-RUN wget https://www.earthsystemgrid.org/dataset/ncl.662.dap/file/ncl_ncarg-6.6.2-Debian9.8_64bit_gnu630.tar.gz
-RUN tar -xzf ncl_ncarg-6.6.2-Debian9.8_64bit_gnu630.tar.gz
-RUN rm ncl_ncarg-6.6.2-Debian9.8_64bit_gnu630.tar.gz
+# Install miniconda3 and install NCL via conda
+
+RUN wget \
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh
+RUN conda install -c conda-forge ncl
 
 #Required installs to run ncl installed with apt.
 #Some installs are most likely redundent.
